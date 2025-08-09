@@ -7,14 +7,12 @@ public class CameraMovement : MonoBehaviour
 
     InputSystem_Actions inputActions;
     
-    // Start is called before the first frame update
     void Start()
     {
         inputActions = new InputSystem_Actions();
         inputActions.Enable();
     }
     
-    // Update is called once per frame
     void Update()
     {
         Vector2 direction = inputActions.Player.Move.ReadValue<Vector2>();

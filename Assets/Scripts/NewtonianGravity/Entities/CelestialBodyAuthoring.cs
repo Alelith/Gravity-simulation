@@ -7,20 +7,28 @@ using Utilities;
 namespace NewtonianGravity.Entities
 {
     [RequireComponent(typeof(LineRenderer))]
+    /// <summary>
+    /// Authoring component for celestial bodies.
+    /// </summary>
     public class CelestialBodyAuthoring : MonoBehaviour
     {
         [Header("Data")]
+        [Tooltip("Mass of the celestial body in kilograms.")]
         public double mass;
+        [Tooltip("Initial velocity of the celestial body in meters per second.")]
         public Vector3 initialVelocity;
         
         [Header("Debug")]
         [SerializeField]
+        [Tooltip("Number of steps to simulate the trajectory.")]
         int trajectorySteps = 100;
         [SerializeField]
+        [Tooltip("Time step for each simulation step.")]
         double timeStep = 0.1;
         
         LineRenderer lineRenderer;
-    
+
+        // Baker for converting the authoring component to a Unity entity
         class CelestialBodyBaker : Baker<CelestialBodyAuthoring>
         {
             public override void Bake(CelestialBodyAuthoring authoring)
@@ -37,10 +45,7 @@ namespace NewtonianGravity.Entities
         }
 
         [ExecuteAlways]
-        void Start()
-        {
-            lineRenderer = GetComponent<LineRenderer>();
-        }
+        void Start() => lineRenderer = GetComponent<LineRenderer>();
 
         [ExecuteAlways]
         void OnDrawGizmos()
@@ -56,11 +61,11 @@ namespace NewtonianGravity.Entities
         
         void CalculateTrajectory()
         {
-            // Configurar el LineRenderer
+            // Configure LineRenderer
             lineRenderer.positionCount = trajectorySteps;
             Vector3[] positions = new Vector3[trajectorySteps];
 
-            // Clonar las propiedades iniciales de todos los cuerpos
+            // Clone initial properties of all bodies
             var celestialBodies = FindObjectsOfType<CelestialBodyAuthoring>();
             var simulatedPositions = new double3[celestialBodies.Length];
             var simulatedVelocities = new double3[celestialBodies.Length];
@@ -73,17 +78,17 @@ namespace NewtonianGravity.Entities
                 masses[i] = celestialBodies[i].mass;
             }
 
-            // Índice del cuerpo actual
+            // Current body index
             int currentBodyIndex = Array.IndexOf(celestialBodies, this);
 
-            // Simulación de trayectorias
+            // Simulate trajectories
             for (int step = 0; step < trajectorySteps; step++)
             {
                 double3 totalForce = double3.zero;
 
                 for (int i = 0; i < celestialBodies.Length; i++)
                 {
-                    // Calcular las fuerzas para cada cuerpo
+                    // Calculate forces for each body
                     double3 forceOnCurrent = double3.zero;
 
                     for (int j = 0; j < celestialBodies.Length; j++)
@@ -100,19 +105,19 @@ namespace NewtonianGravity.Entities
                                           (Constants.G * masses[i] * masses[j] / distanceSquared);
                     }
 
-                    // Actualizar la aceleración, velocidad y posición
+                    // Update acceleration, velocity, and position
                     double3 acceleration = forceOnCurrent / masses[i];
                     simulatedVelocities[i] += acceleration * timeStep;
                     simulatedPositions[i] += simulatedVelocities[i] * timeStep;
                 }
 
-                // Registrar la posición del cuerpo actual para la trayectoria
+                // Register current body position for trajectory
                 positions[step] = new Vector3((float)simulatedPositions[currentBodyIndex].x,
                                               (float)simulatedPositions[currentBodyIndex].y,
                                               (float)simulatedPositions[currentBodyIndex].z);
             }
 
-            // Asignar las posiciones calculadas al LineRenderer
+            // Assign calculated positions to LineRenderer
             lineRenderer.SetPositions(positions);
         }
 

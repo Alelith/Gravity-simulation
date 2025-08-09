@@ -22,40 +22,42 @@ namespace NewtonianGravity.Systems
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct PositionSystem : ISystem
     {
-        /*
-         * m = CelestialBody.Mass
-         * x_(n-1) = CelestialBody.Position
-         * v_(n-1) = CelestialBody.Velocity
-         * a_0 = î * G * M / r^2 = PositionSystem.OnCreate()
-         *
-         * x_n = x_(n-1) + v_(n-1) * dt + 1/2 * a_(n-1) * dt^2 = PositionSystem.OnUpdate()
-         */
+        
         public void OnCreate(ref SystemState state)
         {
+            // Initialize forces on each body
             foreach (var body in SystemAPI.Query<RefRW<CelestialBody>>())
             {
+                // Initialize forces
                 double3 forces = double3.zero;
 
+                // Calculate gravitational forces
                 foreach (var otherBody in SystemAPI.Query<RefRO<CelestialBody>>())
                 {
+                    // Calculate distance and direction
                     double distanceSquared = math.lengthsq(otherBody.ValueRO.Position - body.ValueRW.Position);
                     double3 direction = math.normalize(otherBody.ValueRO.Position - body.ValueRW.Position);
                     double distance = math.sqrt(distanceSquared);
 
+                    // Skip if bodies are too close
                     if (distance < 1e-5) continue;
-                    
+
+                    // Calculate gravitational force
                     forces += direction * Constants.G * body.ValueRW.Mass * otherBody.ValueRO.Mass / distanceSquared;
                 }
-                
+
+                // Update acceleration
                 body.ValueRW.Acceleration = forces / body.ValueRW.Mass;
             }
         }
         
         public void OnUpdate(ref SystemState state)
         {
+            // Calculate time step
             double deltaTime = SystemAPI.Time.DeltaTime;
             double deltaTimeSquared = deltaTime * deltaTime;
 
+            // Update positions
             foreach (var body in SystemAPI.Query<RefRW<CelestialBody>>())
                 body.ValueRW.Position += body.ValueRW.Velocity * deltaTime + 0.5 * body.ValueRW.Acceleration * deltaTimeSquared;
         }
@@ -72,24 +74,33 @@ namespace NewtonianGravity.Systems
          */
         public void OnUpdate(ref SystemState state)
         {
+            // Calculate time step
             double deltaTime = SystemAPI.Time.DeltaTime;
+
+            // Update velocities and accelerations
             foreach (var body in SystemAPI.Query<RefRW<CelestialBody>>())
             {
                 double3 forces = double3.zero;
 
+                // Calculate gravitational forces
                 foreach (var otherBody in SystemAPI.Query<RefRO<CelestialBody>>())
                 {
+                    // Calculate distance and direction
                     double distanceSquared = math.lengthsq(otherBody.ValueRO.Position - body.ValueRW.Position);
                     double3 direction = math.normalize(otherBody.ValueRO.Position - body.ValueRW.Position);
                     double distance = math.sqrt(distanceSquared);
 
+                    // Skip if bodies are too close
                     if (distance < 1e-5) continue;
-                    
+
+                    // Calculate gravitational force
                     forces += direction * Constants.G * body.ValueRW.Mass * otherBody.ValueRO.Mass / distanceSquared;
                 }
-                
+
+                // Update acceleration
                 double3 newAcceleration = forces / body.ValueRW.Mass;
 
+                // Update velocity
                 body.ValueRW.Velocity += 0.5 * (body.ValueRW.Acceleration + newAcceleration) * deltaTime;
                 body.ValueRW.Acceleration = newAcceleration;
             }
