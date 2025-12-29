@@ -1,29 +1,25 @@
 using System;
 using UnityEngine;
+using NewtonianGravity.Utilities;
 
 public class CameraMovement : MonoBehaviour
 {
-    [SerializeField] float speedMultiplier;
-
-    InputSystem_Actions inputActions;
+    [SerializeField] 
+    [Tooltip("Target to follow. Assign a GameObject with SystemCenterProxy to follow the system's center of mass.")]
+    Transform targetTransform;
     
-    void Start()
-    {
-        inputActions = new InputSystem_Actions();
-        inputActions.Enable();
-    }
+    [SerializeField]
+    [Tooltip("Offset from the target position.")]
+    Vector3 offset = new Vector3(0f, 0f, -10f);
     
     void Update()
     {
-        Vector2 direction = inputActions.Player.Move.ReadValue<Vector2>();
+        if (targetTransform == null) return;
         
-        Vector3 direction3D = new Vector3(direction.x, 0, direction.y);
-        
-        transform.position += direction3D * (speedMultiplier * Time.deltaTime);
-    }
-
-    void OnDisable()
-    {
-        inputActions.Disable();
+        transform.position = new Vector3(
+            targetTransform.position.x + offset.x,
+            transform.position.y + offset.y,
+            targetTransform.position.z + offset.z
+        );
     }
 }

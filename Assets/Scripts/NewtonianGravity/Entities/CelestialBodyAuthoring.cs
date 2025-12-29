@@ -54,9 +54,9 @@ namespace NewtonianGravity.Entities
                 lineRenderer = GetComponent<LineRenderer>();
             
             CalculateTrajectory();
-            lineRenderer.startColor = GetComponent<MeshRenderer>().sharedMaterial.color;
-            lineRenderer.endColor = ComplementaryColor(GetComponent<MeshRenderer>().sharedMaterial.color);
-            lineRenderer.widthMultiplier = 0.2f;
+            lineRenderer.startColor = GetComponentInChildren<MeshRenderer>().sharedMaterial.color;
+            lineRenderer.endColor = ComplementaryColor(GetComponentInChildren<MeshRenderer>().sharedMaterial.color);
+            lineRenderer.widthMultiplier = 16f;
         }
         
         void CalculateTrajectory()
@@ -66,7 +66,7 @@ namespace NewtonianGravity.Entities
             Vector3[] positions = new Vector3[trajectorySteps];
 
             // Clone initial properties of all bodies
-            var celestialBodies = FindObjectsOfType<CelestialBodyAuthoring>();
+            var celestialBodies = FindObjectsByType<CelestialBodyAuthoring>(FindObjectsSortMode.None);
             var simulatedPositions = new double3[celestialBodies.Length];
             var simulatedVelocities = new double3[celestialBodies.Length];
             var masses = new double[celestialBodies.Length];
